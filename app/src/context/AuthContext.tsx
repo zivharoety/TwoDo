@@ -65,19 +65,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         };
 
         const initAuth = async () => {
+            console.log('Starting Auth Initialization...');
             const timeout = setTimeout(() => {
-                console.warn('Auth init timed out');
+                console.warn('Auth init timed out after 5s');
                 setLoading(false);
             }, 5000);
 
             try {
-                const { data: { session } } = await supabase.auth.getSession();
-                if (session?.user) {
-                    await fetchProfile(session.user.id, session.user.email, session.user.user_metadata);
+                const { data, error: sessionError } = await supabase.auth.getSession();
+                if (sessionError) {
+                    console.error('Session fetching error:', sessionError);
+                }
+
+                if (data?.session?.user) {
+                    console.log('Session found for user:', data.session.user.id);
+                    await fetchProfile(data.session.user.id, data.session.user.email, data.session.user.user_metadata);
+                } else {
+                    console.log('No active session found.');
                 }
             } catch (error) {
-                console.error('Auth init error:', error);
+                console.error('Fatal Auth init error:', error);
             } finally {
+                console.log('Auth Initialization Finished.');
                 clearTimeout(timeout);
                 setLoading(false);
             }

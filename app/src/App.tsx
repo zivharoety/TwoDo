@@ -80,7 +80,21 @@ function AppContent() {
     const { user, loading } = useAuth();
 
     if (loading) {
-        return <div style={{ height: '100vh', display: 'grid', placeItems: 'center' }}>Loading...</div>;
+        return (
+            <div style={{
+                height: '100vh',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                background: '#0f0c29',
+                color: 'white',
+                gap: '1rem'
+            }}>
+                <div style={{ fontSize: '2rem', fontWeight: 'bold' }}>TwoDo</div>
+                <div style={{ opacity: 0.6 }}>Loading...</div>
+            </div>
+        );
     }
 
     return (
