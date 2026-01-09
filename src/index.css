@@ -1,0 +1,279 @@
+:root {
+  --bg-dark: #0f172a;
+  /* Deep slate blue background */
+  --bg-card: rgba(255, 255, 255, 0.03);
+  --bg-card-border: rgba(255, 255, 255, 0.1);
+  --bg-card-highlight: rgba(255, 255, 255, 0.05);
+
+  /* Main Theme */
+  --primary: #818cf8;
+  --primary-glow: rgba(129, 140, 248, 0.6);
+
+  /* Neon Priority Colors - vivid and glowing */
+  --p-high: #ff2d55;
+  /* Neon Red/Pink */
+  --p-high-glow: rgba(255, 45, 85, 0.6);
+
+  --p-med: #fbbf24;
+  /* Neon Amber */
+  --p-med-glow: rgba(251, 191, 36, 0.6);
+
+  --p-low: #34d399;
+  /* Neon Mint/Green */
+  --p-low-glow: rgba(52, 211, 153, 0.6);
+
+  --text-main: #ffffff;
+  --text-muted: #94a3b8;
+
+  --glass-border: 1px solid rgba(255, 255, 255, 0.15);
+  --backdrop-blur: blur(20px);
+
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: dark;
+  color: var(--text-main);
+  background-color: var(--bg-dark);
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+  /* Deep atmospheric background */
+  background:
+    radial-gradient(circle at 10% 10%, rgba(129, 140, 248, 0.15), transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(255, 45, 85, 0.1), transparent 40%),
+    #020617;
+  background-attachment: fixed;
+}
+
+#root {
+  width: 100%;
+  max-width: 480px;
+  min-height: 100vh;
+  margin: 0 auto;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* Premium Acrylic Glass */
+.glass-panel {
+  /* Richer gradient for 'crystalline' look */
+  background: linear-gradient(135deg,
+      rgba(255, 255, 255, 0.12) 0%,
+      rgba(255, 255, 255, 0.03) 40%,
+      rgba(255, 255, 255, 0.01) 100%);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+
+  /* Icy borders */
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.35);
+  /* Bright light source highlight */
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+
+  border-radius: 20px;
+  box-shadow:
+    0 10px 40px -10px rgba(0, 0, 0, 0.6),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  /* Inner rim */
+
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Neon Priority Styles */
+.priority-high {
+  box-shadow:
+    inset 0 0 25px rgba(255, 45, 85, 0.2),
+    0 0 0 2px rgba(255, 45, 85, 0.6),
+    0 0 30px rgba(255, 45, 85, 0.5);
+}
+
+.priority-med {
+  box-shadow:
+    inset 0 0 25px rgba(251, 191, 36, 0.2),
+    0 0 0 2px rgba(251, 191, 36, 0.6),
+    0 0 30px rgba(251, 191, 36, 0.5);
+}
+
+.priority-low {
+  box-shadow:
+    inset 0 0 25px rgba(52, 211, 153, 0.2),
+    0 0 0 2px rgba(52, 211, 153, 0.6),
+    0 0 30px rgba(52, 211, 153, 0.5);
+}
+
+.past-due {
+  border-color: rgba(239, 68, 68, 0.6) !important;
+  box-shadow:
+    inset 0 0 20px rgba(239, 68, 68, 0.1),
+    0 0 0 2px rgba(239, 68, 68, 0.4) !important;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(0, 0, 0, 0) 100%) !important;
+}
+
+.past-due h3 {
+  color: #fca5a5 !important;
+  /* Light red text */
+}
+
+/* Badges */
+.badge {
+  padding: 0.3rem 0.8rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+.badge-high {
+  color: #ff2d55;
+  border-color: rgba(255, 45, 85, 0.5);
+  background: rgba(255, 45, 85, 0.1);
+  box-shadow: 0 0 10px rgba(255, 45, 85, 0.2);
+  text-shadow: 0 0 5px rgba(255, 45, 85, 0.5);
+}
+
+.badge-med {
+  color: #fbbf24;
+  border-color: rgba(251, 191, 36, 0.5);
+  background: rgba(251, 191, 36, 0.1);
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.2);
+  text-shadow: 0 0 5px rgba(251, 191, 36, 0.5);
+}
+
+.badge-low {
+  color: #34d399;
+  border-color: rgba(52, 211, 153, 0.5);
+  background: rgba(52, 211, 153, 0.1);
+  box-shadow: 0 0 10px rgba(52, 211, 153, 0.2);
+  text-shadow: 0 0 5px rgba(52, 211, 153, 0.5);
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary), #4f46e5);
+  color: white;
+  border: none;
+  padding: 0.8rem 1.4rem;
+  border-radius: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+/* Layout */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.content-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  padding-bottom: 80px;
+  /* Space for nav */
+}
+
+.navbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 70px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.8);
+  /* Adapted to bg-dark */
+  backdrop-filter: blur(16px);
+  border-top: var(--glass-border);
+  z-index: 50;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.nav-item.active {
+  color: var(--primary);
+}
+
+.nav-item svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* Global Micro-Interactions */
+button,
+.nav-item,
+.glass-panel[style*="cursor: pointer"] {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Smooth Scrollbar-less Experience */
+.content-area::-webkit-scrollbar {
+  display: none;
+}
+
+.content-area {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  scroll-behavior: smooth;
+}
+
+/* Page entrance animations */
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.98) translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-entrance {
+  animation: fadeInScale 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+}
