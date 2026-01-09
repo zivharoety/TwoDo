@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
-import { Mail, Search, Heart, UserMinus, Settings } from 'lucide-react';
+import { Mail, Search, Heart, UserMinus, Settings, Bell } from 'lucide-react';
+import { notificationManager } from '../utils/notifications';
 
 interface PartnerPageProps {
     onBack?: () => void;
@@ -14,6 +15,18 @@ export function PartnerPage({ onBack }: PartnerPageProps) {
     const [loading, setLoading] = useState(false);
     const [showPartnerInfo, setShowPartnerInfo] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+    const [notifPermission, setNotifPermission] = useState(notificationManager.getPermissionStatus());
+
+    const handleRequestNotifications = async () => {
+        const granted = await notificationManager.requestPermission();
+        setNotifPermission(notificationManager.getPermissionStatus());
+        if (granted) {
+            setMessage({ type: 'success', text: 'Notifications enabled!' });
+        } else {
+            setMessage({ type: 'error', text: 'Notifications denied or unsupported.' });
+        }
+        setTimeout(() => setMessage(null), 3000);
+    };
 
     const handleLinkPartner = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -212,6 +225,30 @@ export function PartnerPage({ onBack }: PartnerPageProps) {
                             <UserMinus size={16} />
                             Unlink Partner
                         </button>
+
+                        {notifPermission !== 'granted' && notifPermission !== 'unsupported' && (
+                            <button
+                                className="glass-panel"
+                                style={{
+                                    width: '100%',
+                                    padding: '0.8rem',
+                                    marginTop: '1rem',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '10px',
+                                    background: 'rgba(var(--primary-rgb), 0.1)',
+                                    border: '1px solid rgba(var(--primary-rgb), 0.2)',
+                                    color: 'var(--primary)',
+                                    fontSize: '0.9rem',
+                                    fontWeight: '500'
+                                }}
+                                onClick={handleRequestNotifications}
+                            >
+                                <Bell size={18} />
+                                Enable Notifications
+                            </button>
+                        )}
                     </div>
                 </motion.div>
             )}

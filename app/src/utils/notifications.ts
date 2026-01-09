@@ -5,8 +5,19 @@ export const notificationManager = {
             return false;
         }
 
-        const permission = await Notification.requestPermission();
-        return permission === 'granted';
+        // On iOS, this MUST be called from a user gesture
+        try {
+            const permission = await Notification.requestPermission();
+            return permission === 'granted';
+        } catch (e) {
+            console.error('Permission request failed:', e);
+            return false;
+        }
+    },
+
+    getPermissionStatus() {
+        if (!('Notification' in window)) return 'unsupported';
+        return Notification.permission;
     },
 
     show(title: string, options?: NotificationOptions) {
