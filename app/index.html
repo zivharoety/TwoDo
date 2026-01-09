@@ -1,21 +1,53 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>TwoDo</title>
-    <link rel="manifest" href="/manifest.json" />
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="TwoDo">
-    <link rel="apple-touch-icon" href="/icon-192.png">
-    <meta name="theme-color" content="#6366f1">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>TwoDo</title>
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="TwoDo">
+  <link rel="apple-touch-icon" href="/icon-192.png">
+  <meta name="theme-color" content="#6366f1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <div id="root"></div>
+  <div id="emergency-error"
+    style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#020617; color:#ff2d55; padding:2rem; font-family:sans-serif; z-index:9999; box-sizing:border-box; overflow-y:auto;">
+    <h2 style="margin-top:0;">⚠️ App Failed to Load</h2>
+    <p>Something went wrong during startup. Please try clearing your cache or refreshing.</p>
+    <pre id="error-details"
+      style="background:rgba(255,45,85,0.1); padding:1rem; border-radius:8px; white-space:pre-wrap; font-size:0.8rem; color:white;"></pre>
+    <button onclick="window.location.reload(true)"
+      style="background:#818cf8; color:white; border:none; padding:10px 20px; border-radius:8px; margin-top:1rem; font-weight:bold;">Refresh
+      Page</button>
+  </div>
+  <script>
+    window.onerror = function (msg, url, line, col, error) {
+      var el = document.getElementById('emergency-error');
+      var details = document.getElementById('error-details');
+      if (el && details) {
+        el.style.display = 'block';
+        details.innerText = msg + '\n\nFile: ' + url + '\nLine: ' + line + '\nCol: ' + col + '\nStack: ' + (error ? error.stack : 'N/A');
+      }
+      return false;
+    };
+    window.onunhandledrejection = function (event) {
+      var el = document.getElementById('emergency-error');
+      var details = document.getElementById('error-details');
+      if (el && details) {
+        el.style.display = 'block';
+        details.innerText = 'Unhandled Promise Rejection: ' + event.reason;
+      }
+    };
+  </script>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
 </html>
