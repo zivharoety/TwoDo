@@ -196,13 +196,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
                 else if (daysUntil <= 7 && daysUntil > 2 && task.priority === 'low') updates.priority = 'medium';
 
                 if (Object.keys(updates).length > 0) {
-                    try {
-                        await supabase.from('tasks').update(updates).eq('id', task.id);
-                        // Local update to avoid waiting for next fetch
-                        setTasks(prev => prev.map(t => t.id === task.id ? { ...t, ...updates } : t));
-                    } catch (err) {
-                        console.error('Watchdog update error:', err);
-                    }
+                    await supabase.from('tasks').update(updates).eq('id', task.id);
                 }
             });
         };
@@ -227,10 +221,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
         }
 
         if (data) {
-            setTasks(prev => {
-                if (prev.find(t => t.id === data.id)) return prev;
-                return [data as Task, ...prev];
-            });
+            setTasks(prev => [data as Task, ...prev]);
         }
     };
 
