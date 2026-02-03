@@ -128,10 +128,14 @@ export function CreateTaskModal({ isOpen, onClose, taskToEdit }: CreateTaskModal
             due_at: dueDate ? new Date(dueDate).toISOString() : undefined,
             tags: selectedTags,
             checklist: checklist.map((text) => {
-                // Keep existing IDs if it's an edit, or generate new ones
+                // Fallback for crypto.randomUUID() which requires a secure context
+                const generateId = () => {
+                    if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+                    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+                };
                 const existingItem = taskToEdit?.checklist?.find((i: any) => i.text === text);
                 return {
-                    id: existingItem?.id || crypto.randomUUID(),
+                    id: existingItem?.id || generateId(),
                     text,
                     is_completed: existingItem?.is_completed || false
                 };
@@ -140,6 +144,7 @@ export function CreateTaskModal({ isOpen, onClose, taskToEdit }: CreateTaskModal
         };
 
         try {
+            console.log('Submitting task data:', taskData);
             if (taskToEdit) {
                 await updateTask(taskToEdit.id, taskData);
             } else {
@@ -148,9 +153,10 @@ export function CreateTaskModal({ isOpen, onClose, taskToEdit }: CreateTaskModal
                     creator_id: user.id
                 });
             }
+            console.log('Task saved successfully');
             onClose();
         } catch (err: any) {
-            console.error('Submit error:', err);
+            console.error('Submit error details:', err);
             alert(`Failed to save task: ${err.message || 'Check your database connection'}`);
         } finally {
             setIsSubmitting(false);
@@ -264,11 +270,12 @@ export function CreateTaskModal({ isOpen, onClose, taskToEdit }: CreateTaskModal
                                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                                         {[
                                             { id: 'me', label: 'Me' },
-                                            { id: 'partner', label: 'Partner' }
+                                            { id: 'partner', label: 'Partner', disabled: !user?.partner_id }
                                         ].map((opt) => (
                                             <button
                                                 key={opt.id}
                                                 type="button"
+                                                disabled={opt.disabled}
                                                 onClick={() => { hapticFeedback.light(); setSharedAssignee(opt.id as any); }}
                                                 style={{
                                                     flex: 1,
@@ -278,10 +285,11 @@ export function CreateTaskModal({ isOpen, onClose, taskToEdit }: CreateTaskModal
                                                     background: sharedAssignee === opt.id ? 'rgba(99, 102, 241, 0.1)' : 'transparent',
                                                     color: sharedAssignee === opt.id ? 'var(--primary)' : 'var(--text-muted)',
                                                     fontSize: '0.8rem',
-                                                    cursor: 'pointer'
+                                                    cursor: opt.disabled ? 'not-allowed' : 'pointer',
+                                                    opacity: opt.disabled ? 0.3 : 1
                                                 }}
                                             >
-                                                {opt.label}
+                                                {opt.label} {opt.disabled && '(Not Linked)'}
                                             </button>
                                         ))}
                                     </div>
