@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { Task } from '../types';
 import { differenceInDays, isBefore, addHours } from 'date-fns';
 import { useAuth } from './AuthContext';
@@ -22,9 +22,9 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
     const { user } = useAuth();
     const [tasks, setTasks] = useState<Task[]>([]);
     const [notifiedTaskIds, setNotifiedTaskIds] = useState<Set<string>>(new Set());
-    const tasksRef = React.useRef<Task[]>([]);
-    const notifiedRef = React.useRef<Set<string>>(new Set());
-    const channelsRef = React.useRef<Record<string, any>>({});
+    const tasksRef = useRef<Task[]>([]);
+    const notifiedRef = useRef<Set<string>>(new Set());
+    const channelsRef = useRef<Record<string, any>>({});
 
     useEffect(() => {
         tasksRef.current = tasks;
@@ -218,7 +218,10 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
     }, [user]);
 
     const addTask = async (newTask: Omit<Task, 'id' | 'created_at' | 'status'>) => {
-        const tempId = crypto.randomUUID();
+        const tempId = (typeof crypto !== 'undefined' && crypto.randomUUID)
+            ? crypto.randomUUID()
+            : Math.random().toString(36).substring(2) + Date.now().toString(36);
+
         const optimisticTask: Task = {
             ...newTask,
             id: tempId,

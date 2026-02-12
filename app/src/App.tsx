@@ -78,6 +78,7 @@ function AnimatedRoutes() {
 
 function AppContent() {
     const { user, loading } = useAuth();
+    console.log('AppContent render - loading:', loading, 'user:', user?.id);
 
     if (loading) {
         return (
