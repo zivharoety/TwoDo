@@ -23,10 +23,16 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
     const [tasks, setTasks] = useState<Task[]>([]);
     const [notifiedTaskIds, setNotifiedTaskIds] = useState<Set<string>>(new Set());
     const tasksRef = React.useRef<Task[]>([]);
+    const notifiedRef = React.useRef<Set<string>>(new Set());
+    const channelsRef = React.useRef<Record<string, any>>({});
 
     useEffect(() => {
         tasksRef.current = tasks;
     }, [tasks]);
+
+    useEffect(() => {
+        notifiedRef.current = notifiedTaskIds;
+    }, [notifiedTaskIds]);
 
     const availableTags = React.useMemo(() =>
         Array.from(new Set(tasks.flatMap(t => t.tags || []))).sort(),
@@ -120,6 +126,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
             supabase.removeChannel(nudgeChannel);
             supabase.removeChannel(milestoneChannel);
             supabase.removeChannel(taskDueChannel);
+            Object.values(channelsRef.current).forEach(ch => supabase.removeChannel(ch));
         };
     }, [user]);
 
@@ -145,7 +152,8 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
                     updates.status = 'past_due';
                     const notifyKey = `due-${task.id}`;
 
-                    if (!notifiedTaskIds.has(notifyKey)) {
+                    if (!notifiedRef.current.has(notifyKey)) {
+                        console.log('Task past due, notifying:', task.title);
                         setNotifiedTaskIds(prev => new Set(prev).add(notifyKey));
 
                         const isOwner = task.assignee_id === user.id || (!task.assignee_id && task.creator_id === user.id);
@@ -161,23 +169,27 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
 
                         // If shared, broadcast to partner
                         if (isShared && user.partner_id) {
-                            supabase.channel(`task_due_${user.partner_id}`).send({
+                            const channelKey = `task_due_${user.partner_id}`;
+                            if (!channelsRef.current[channelKey]) {
+                                channelsRef.current[channelKey] = supabase.channel(channelKey);
+                            }
+                            channelsRef.current[channelKey].send({
                                 type: 'broadcast',
                                 event: 'task_due',
                                 payload: {
                                     taskId: task.id,
                                     title: task.title,
-                                    isPartner: true // To the partner, it's a partner task
+                                    isPartner: true
                                 }
                             });
                         }
                     }
                 }
 
-                // 2. Handle "Due Soon" (Watchdog logic already mostly there, but let's refine it)
+                // 2. Handle "Due Soon" (Watchdog logic refined)
                 if (isDueSoon && task.status === 'active') {
                     const notifyKey = `${task.id}-due-soon`;
-                    if (!notifiedTaskIds.has(notifyKey)) {
+                    if (!notifiedRef.current.has(notifyKey)) {
                         setNotifiedTaskIds(prev => new Set(prev).add(notifyKey));
 
                         const isOwner = task.assignee_id === user.id || (!task.assignee_id && task.creator_id === user.id);
@@ -206,40 +218,67 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
     }, [user]);
 
     const addTask = async (newTask: Omit<Task, 'id' | 'created_at' | 'status'>) => {
-        const { data, error } = await supabase
-            .from('tasks')
-            .insert([{
-                ...newTask,
-                status: 'active'
-            }])
-            .select()
-            .single();
+        const tempId = crypto.randomUUID();
+        const optimisticTask: Task = {
+            ...newTask,
+            id: tempId,
+            created_at: new Date().toISOString(),
+            status: 'active'
+        };
 
-        if (error) {
+        // 1. Optimistic Update
+        setTasks(prev => [optimisticTask, ...prev]);
+
+        try {
+            const { data, error } = await supabase
+                .from('tasks')
+                .insert([{
+                    ...newTask,
+                    status: 'active'
+                }])
+                .select()
+                .single();
+
+            if (error) throw error;
+
+            if (data) {
+                // 2. Replace temp task with real data (with DB-generated ID)
+                setTasks(prev => prev.map(t => t.id === tempId ? data as Task : t));
+                console.log('Task created successfully on server:', data.id);
+            }
+        } catch (error: any) {
             console.error('Add task error:', error);
+            // 3. Revert optimistic update
+            setTasks(prev => prev.filter(t => t.id !== tempId));
             throw error;
-        }
-
-        if (data) {
-            setTasks(prev => [data as Task, ...prev]);
         }
     };
 
     const updateTask = async (id: string, updates: Partial<Task>) => {
-        const { data, error } = await supabase
-            .from('tasks')
-            .update(updates)
-            .eq('id', id)
-            .select()
-            .single();
+        const previousTasks = [...tasks];
 
-        if (error) {
+        // 1. Optimistic Update
+        setTasks(prev => prev.map(t => t.id === id ? { ...t, ...updates } as Task : t));
+
+        try {
+            const { data, error } = await supabase
+                .from('tasks')
+                .update(updates)
+                .eq('id', id)
+                .select()
+                .single();
+
+            if (error) throw error;
+
+            if (data) {
+                // 2. Ensure state matches server response
+                setTasks(prev => prev.map(t => t.id === id ? data as Task : t));
+            }
+        } catch (error: any) {
             console.error('Update task error:', error);
+            // 3. Revert on error
+            setTasks(previousTasks);
             throw error;
-        }
-
-        if (data) {
-            setTasks(prev => prev.map(t => t.id === id ? data as Task : t));
         }
     };
 

@@ -117,6 +117,11 @@ export function CreateTaskModal({ isOpen, onClose, taskToEdit }: CreateTaskModal
         if (assignScope === 'shared') {
             visibility = 'shared';
             assignee_id = sharedAssignee === 'me' ? user.id : (user.partner_id || user.id);
+
+            if (!user.partner_id && sharedAssignee === 'partner') {
+                alert("You haven't linked with a partner yet! This task will be assigned to you until you link with someone.");
+                assignee_id = user.id;
+            }
         }
 
         const taskData = {
@@ -151,6 +156,8 @@ export function CreateTaskModal({ isOpen, onClose, taskToEdit }: CreateTaskModal
             onClose();
         } catch (err: any) {
             console.error('Submit error:', err);
+            // Even if it fails, TaskContext will revert the optimistic update.
+            // We alert the user so they know it didn't save on the server.
             alert(`Failed to save task: ${err.message || 'Check your database connection'}`);
         } finally {
             setIsSubmitting(false);

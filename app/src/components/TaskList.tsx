@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ArrowDownUp, Filter, Tag } from 'lucide-react';
 import { useTasks } from '../context/TaskContext';
+import { useAuth } from '../context/AuthContext';
 import { TaskCard } from '../components/TaskCard';
 import { CreateTaskModal } from './CreateTaskModal';
 import { Task } from '../types';
@@ -17,6 +18,7 @@ type SortOption = 'created' | 'priority' | 'due_date';
 
 export function TaskList({ filter, title, showNudge = false, isMyList = false }: TaskListProps) {
     const { tasks, toggleTaskCompletion, nudgePartner, availableTags } = useTasks();
+    const { user } = useAuth();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
     const [sortBy, setSortBy] = useState<SortOption>('created');
@@ -48,11 +50,12 @@ export function TaskList({ filter, title, showNudge = false, isMyList = false }:
             return false;
         }
 
-        // 3. My List Specific: Hide shared assignments by default
+        // 3. My List Specific: Hide shared tasks NOT assigned to me by default
         if (isMyList && !showSharedAssignments) {
-            // User Request: "show only tasks that i open under me option"
-            // "under me" tasks are those with visibility 'private'
-            if (t.visibility !== 'private') {
+            // Show if it's private (my personal tasks) 
+            // OR if it's assigned specifically to me (even if shared)
+            const isAssignedToMe = t.assignee_id === user?.id;
+            if (t.visibility !== 'private' && !isAssignedToMe) {
                 return false;
             }
         }
