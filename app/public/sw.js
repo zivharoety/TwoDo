@@ -1,4 +1,4 @@
-const CACHE_NAME = 'twodo-cache-v1';
+const CACHE_NAME = 'twodo-cache-v2';
 const urlsToCache = [
     '/',
     '/index.html',
@@ -17,13 +17,45 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('fetch', event => {
+    const url = new URL(event.request.url);
+
+    // For the root and index.html, use Network First strategy
+    if (url.pathname === '/' || url.pathname === '/index.html') {
+        event.respondWith(
+            fetch(event.request)
+                .then(response => {
+                    // Cache the new version
+                    const clone = response.clone();
+                    caches.open(CACHE_NAME).then(cache => {
+                        cache.put(event.request, clone);
+                    });
+                    return response;
+                })
+                .catch(() => {
+                    // Fallback to cache if offline
+                    return caches.match(event.request);
+                })
+        );
+        return;
+    }
+
+    // For other assets, use Cache First strategy
     event.respondWith(
         caches.match(event.request)
             .then(response => {
                 if (response) {
                     return response;
                 }
-                return fetch(event.request);
+                return fetch(event.request).then(networkResponse => {
+                    // Don't cache everything, just what we need or what's from our origin
+                    if (networkResponse.status === 200 && url.origin === location.origin) {
+                        const clone = networkResponse.clone();
+                        caches.open(CACHE_NAME).then(cache => {
+                            cache.put(event.request, clone);
+                        });
+                    }
+                    return networkResponse;
+                });
             })
     );
 });
