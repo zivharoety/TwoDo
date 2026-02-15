@@ -245,8 +245,12 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
             if (error) throw error;
 
             if (data) {
-                // 2. Replace temp task with real data (with DB-generated ID)
-                setTasks(prev => prev.map(t => t.id === tempId ? data as Task : t));
+                // 2. Replace temp task with real data, but watch out for duplicates from real-time sync
+                setTasks(prev => {
+                    const withoutTemp = prev.filter(t => t.id !== tempId);
+                    if (withoutTemp.some(t => t.id === data.id)) return withoutTemp;
+                    return [data as Task, ...withoutTemp];
+                });
                 console.log('Task created successfully on server:', data.id);
             }
         } catch (error: any) {

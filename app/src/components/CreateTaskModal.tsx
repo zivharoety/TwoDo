@@ -111,40 +111,46 @@ export function CreateTaskModal({ isOpen, onClose, taskToEdit }: CreateTaskModal
         setIsSubmitting(true);
         hapticFeedback.success();
 
-        let visibility: Visibility = 'private';
-        let assignee_id = user.id; // Default to me for private tasks
-
-        if (assignScope === 'shared') {
-            visibility = 'shared';
-            assignee_id = sharedAssignee === 'me' ? user.id : (user.partner_id || user.id);
-
-            if (!user.partner_id && sharedAssignee === 'partner') {
-                alert("You haven't linked with a partner yet! This task will be assigned to you until you link with someone.");
-                assignee_id = user.id;
-            }
-        }
-
-        const taskData = {
-            title,
-            description: description.trim() || undefined,
-            priority,
-            visibility,
-            assignee_id,
-            due_at: dueDate ? new Date(dueDate).toISOString() : undefined,
-            tags: selectedTags,
-            checklist: checklist.map((text) => {
-                // Keep existing IDs if it's an edit, or generate new ones
-                const existingItem = taskToEdit?.checklist?.find((i: any) => i.text === text);
-                return {
-                    id: existingItem?.id || crypto.randomUUID(),
-                    text,
-                    is_completed: existingItem?.is_completed || false
-                };
-            }),
-            image_url: image || undefined
-        };
-
         try {
+            let visibility: Visibility = 'private';
+            let assignee_id = user.id; // Default to me for private tasks
+
+            if (assignScope === 'shared') {
+                visibility = 'shared';
+                assignee_id = sharedAssignee === 'me' ? user.id : (user.partner_id || user.id);
+
+                if (!user.partner_id && sharedAssignee === 'partner') {
+                    alert("You haven't linked with a partner yet! This task will be assigned to you until you link with someone.");
+                    assignee_id = user.id;
+                }
+            }
+
+            const generateId = () => {
+                return (typeof crypto !== 'undefined' && crypto.randomUUID)
+                    ? crypto.randomUUID()
+                    : Math.random().toString(36).substring(2) + Date.now().toString(36);
+            };
+
+            const taskData = {
+                title,
+                description: description.trim() || undefined,
+                priority,
+                visibility,
+                assignee_id,
+                due_at: dueDate ? new Date(dueDate).toISOString() : undefined,
+                tags: selectedTags,
+                checklist: checklist.map((text) => {
+                    // Keep existing IDs if it's an edit, or generate new ones
+                    const existingItem = taskToEdit?.checklist?.find((i: any) => i.text === text);
+                    return {
+                        id: existingItem?.id || generateId(),
+                        text,
+                        is_completed: existingItem?.is_completed || false
+                    };
+                }),
+                image_url: image || undefined
+            };
+
             if (taskToEdit) {
                 await updateTask(taskToEdit.id, taskData);
             } else {
