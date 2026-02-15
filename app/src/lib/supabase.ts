@@ -9,14 +9,6 @@ if (!supabaseUrl || !supabaseKey) {
     console.error('Missing Supabase environment variables. Check your .env file.');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseKey, {
-    auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true,
-        storageKey: 'twodo-auth-token',
-        flowType: 'pkce'
-    }
-})
+export const supabase = createClient(supabaseUrl, supabaseKey)
 
 export const isSupabaseConfigured = () => !!(supabaseUrl && supabaseKey);
